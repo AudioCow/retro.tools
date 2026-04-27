@@ -2,6 +2,8 @@
   import { createEventDispatcher } from "svelte";
   import { _ } from "svelte-i18n";
   import { slide } from "svelte/transition";
+  import { UploadIcon } from "svelte-feather-icons";
+  import { load as loadYaml } from "js-yaml";
 
   import { Icons, BoardTemplates } from "../data.js";
   import { colorMode, darkMode, password } from "../store.js";
@@ -17,11 +19,60 @@
   const dispatch = createEventDispatcher();
   let boardName = $state("");
   let templateKey = $state("dropAddKeepImprove");
+  let customTemplate = $state(null);
+  let fileInput = $state(null);
   let iceBreakingQuestion = $state("");
   let passwordDisabled = $state(true);
   let showPassword = $state(false);
   let createBusy = $state(false);
   let optionsExpanded = $state(false);
+
+  const validColors = new Set([
+    "red",
+    "green",
+    "blue",
+    "yellow",
+    "cyan",
+    "plain",
+  ]);
+  const validIcons = new Set(Object.keys(Icons));
+
+  function parseYamlTemplate(content) {
+    const doc = loadYaml(content);
+    const columns =
+      doc != null && typeof doc === "object" && "columns" in doc
+        ? doc.columns
+        : null;
+    if (!Array.isArray(columns)) throw new Error("missing columns");
+    const ranks = columns.map((col, i) => ({
+      name: String(col.key ?? col.name ?? ""),
+      icon: validIcons.has(col.icon) ? col.icon : "plus",
+      color: validColors.has(col.color) ? col.color : "plain",
+      position: i,
+    }));
+    return { name: "board.template.custom.name", ranks };
+  }
+
+  function handleFileImport(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const template = parseYamlTemplate(e.target.result);
+        if (template.ranks.length === 0) {
+          dispatch("error", { message: "error.invalid_template" });
+          return;
+        }
+        customTemplate = template;
+        templateKey = "custom";
+      } catch (err) {
+        dispatch("error", { message: "error.invalid_template", err });
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
 
   async function createFromTemplate(template) {
     let [boardNameEncrypted, encryptionTest, iceBreakingQuestionEncrypted] =
@@ -50,7 +101,11 @@
       password.set("");
     }
     try {
-      const board = await createFromTemplate(BoardTemplates[templateKey]);
+      const template =
+        templateKey === "custom" && customTemplate
+          ? customTemplate
+          : BoardTemplates[templateKey];
+      const board = await createFromTemplate(template);
       dispatch("created", board.id);
     } catch (err) {
       dispatch("error", { message: "error.creating_board", err });
@@ -102,11 +157,31 @@
   {#if optionsExpanded}
     <div in:slide out:slide>
       <p class="my-1 small">{$_("splash.template")}</p>
-      <Select bind:value={templateKey}>
-        {#each Object.entries(BoardTemplates) as [key, template] (key)}
-          <option value={key}>{$_(template.name)}</option>
-        {/each}
-      </Select>
+      <div class="d-flex gap-2">
+        <Select bind:value={templateKey}>
+          {#each Object.entries(BoardTemplates) as [key, template] (key)}
+            <option value={key}>{$_(template.name)}</option>
+          {/each}
+          {#if customTemplate}
+            <option value="custom">{$_("board.template.custom.name")}</option>
+          {/if}
+        </Select>
+        <input
+          type="file"
+          accept=".yaml,.yml"
+          class="d-none"
+          bind:this={fileInput}
+          onchange={handleFileImport}
+        />
+        <Button
+          color={$colorMode}
+          textColor="body"
+          on:click={() => fileInput.click()}
+          title={$_("splash.import_template")}
+        >
+          <UploadIcon size="1x" />
+        </Button>
+      </div>
       <p class="my-1 small">{$_("general.encryption")}</p>
       <div class="input-group">
         <div class="input-group-text">

@@ -23,6 +23,7 @@
   } from "../store.js";
   import { createRank } from "../api.js";
   import { decrypt } from "../encryption.js";
+  import { dump as dumpYaml } from "js-yaml";
 
   import QRCode from "./QRCode.svelte";
   import Timer from "./Timer.svelte";
@@ -58,6 +59,25 @@
       return `"${str.replace(/"/g, '""')}"`;
     }
     return str;
+  }
+
+  async function downloadTemplate() {
+    const sortedRanks = [...$ranks].sort((a, b) => a.position - b.position);
+    const columns = sortedRanks.map((rank) => {
+      const name = $_(rank.name);
+      const col = { name, icon: rank.data.icon, color: rank.data.color };
+      if (name !== rank.name) col.key = rank.name;
+      return col;
+    });
+    const yaml = dumpYaml({ columns });
+    const blob = new Blob([yaml], { type: "text/yaml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const boardName = await decrypt($board.name, $password);
+    a.download = `retro-tools-${boardName}-template.yaml`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function downloadCSV() {
@@ -220,6 +240,15 @@
         <Icons.download class="align-top" size="1x" />
       </div>
       {$_("board.options.download_csv")}
+    </DropdownItem>
+    <DropdownItem
+      data-name="download-template-button"
+      on:click={downloadTemplate}
+    >
+      <div class="d-inline-block icon position-relative" style="top: 2px">
+        <Icons.columns class="align-top" size="1x" />
+      </div>
+      {$_("board.options.download_template")}
     </DropdownItem>
     <DropdownItem
       data-name="copy-link-button"
