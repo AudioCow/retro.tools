@@ -42,7 +42,7 @@
   let errorAlertVisible = $state(false);
   let errorAlertMessage = $state("Network error!");
   let errorClearTimeout;
-  let connectionLost = false;
+  let connectionLost = $state(false);
   let passwordRequired = $state(false);
   let busy = $state(true);
   let sortedRanks = $state([]);
@@ -171,6 +171,9 @@
         () => {
           navigate("/not-found");
         },
+        () => {
+          connectionLost = true;
+        },
       );
     }
 
@@ -180,9 +183,12 @@
       (card) => cards.replace(card.id, card),
       (card) => cards.replace(card.id, card),
       (cardId) => cards.remove(cardId),
+      () => {
+        connectionLost = true;
+      },
     );
 
-    // Subscribe to card updates
+    // Subscribe to rank updates
     unsubscribeRanks = await subscribeToRanks(
       boardId,
       (rank) => ranks.replace(rank.id, rank),
@@ -193,16 +199,32 @@
           $focusedRank = $ranks[0]?.id;
         }
       },
+      () => {
+        connectionLost = true;
+      },
     );
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
 
     busy = false;
   });
+
+  function handleOffline() {
+    connectionLost = true;
+  }
+
+  function handleOnline() {
+    connectionLost = false;
+  }
 
   onDestroy(() => {
     unsubscribeLocalBoard && unsubscribeLocalBoard();
     unsubscribeBoard && unsubscribeBoard();
     unsubscribeRanks && unsubscribeRanks();
     unsubscribeCards && unsubscribeCards();
+    window.removeEventListener("offline", handleOffline);
+    window.removeEventListener("online", handleOnline);
   });
 </script>
 
