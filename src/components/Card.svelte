@@ -100,14 +100,13 @@
     }
   }
 
-  async function doReact(event) {
+  function doReact(event) {
     const emoji = event.detail;
     reactDrawOpen = false;
-    if (card.reacted === emoji) {
-      return undoReact($board, card);
-    } else {
-      await react($board, card, emoji);
-    }
+    (card.reacted === emoji
+      ? undoReact($board, card)
+      : react($board, card, emoji)
+    ).catch((err) => error("error.react_failed", err));
   }
 </script>
 
