@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import moment from "moment";
   import { _, locale } from "svelte-i18n";
+  import { format as timeago } from "timeago.js";
 
   import { Icons } from "../data.js";
   import { deleteBoard } from "../api.js";
@@ -88,9 +88,7 @@
         <Icons.check size="1x" />
       </Button>
     {:else}
-      {moment(new Date(board.created_at * 1000))
-        .locale($locale)
-        .fromNow()}
+      {timeago(new Date(board.created_at * 1000), $locale)}
       {#if board.owner}
         <Button
           data-name="delete-button"
