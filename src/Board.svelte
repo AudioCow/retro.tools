@@ -57,10 +57,8 @@
     copy: true,
     moves: (el) => el.dataset.drag !== 'false',
     accepts: (el, target) => {
-      return (
-        target.dataset.rankId !==
-        $cards.find((c) => c.id === el.dataset.cardId).column
-      );
+      const card = $cards.find((c) => c.id === el.dataset.cardId);
+      return card != null && target.dataset.rankId !== card.column;
     },
   });
 
@@ -78,6 +76,7 @@
     const rankId = target.dataset.rankId;
     const cardId = el.dataset.cardId;
     const card = $cards.find((c) => c.id === cardId);
+    if (!card) return;
     const originalRankId = card.column;
 
     el.parentNode.removeChild(el);
@@ -129,7 +128,13 @@
   }
 
   onMount(async () => {
-    const b = await getBoard(boardId);
+    let b;
+    try {
+      b = await getBoard(boardId);
+    } catch {
+      navigate('/not-found');
+      return;
+    }
 
     if (b.error == 'Not Found') {
       navigate('/not-found');
@@ -150,10 +155,8 @@
     let previousBoard = { ...$board };
     if ($board.owner || $board.open_permission) {
       unsubscribeLocalBoard = board.subscribe((b) => {
-        try {
-          if (!compareBoards(previousBoard, b)) updateBoard(b);
-        } catch (err) {
-          error('error.updating_settings', err);
+        if (!compareBoards(previousBoard, b)) {
+          updateBoard(b).catch((err) => error('error.updating_settings', err));
         }
         previousBoard = { ...b };
       });
