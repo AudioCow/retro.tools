@@ -1,5 +1,23 @@
 /// <reference types="cypress" />
 
+// Delete cards one at a time to avoid DOM-update races.
+// Uses within() to avoid :visible ambiguity on narrow viewports.
+function deleteAllCards() {
+  cy.get("body").then(($body) => {
+    const $cards = $body.find("[data-name=card]:visible");
+    if ($cards.length === 0) return;
+    cy.get("[data-name=card]:visible [data-name=delete-button]")
+      .first()
+      .click();
+    cy.get("[data-name=confirm-button]").first().click();
+    cy.get("[data-name=card]:visible").should(
+      "have.length.lessThan",
+      $cards.length,
+    );
+    deleteAllCards();
+  });
+}
+
 context("Menu", () => {
   before(() => {
     cy.login();
@@ -84,10 +102,7 @@ context("Menu", () => {
     // Ensure it goes away
     cy.get("[data-name=warning-alert]").should("not.exist");
 
-    cy.get("[data-name=card]")
-      .find("[data-name=delete-button]:visible")
-      .click({ multiple: true });
-    cy.get("[data-name=confirm-button]:visible").click({ multiple: true });
+    deleteAllCards();
     cy.get("[data-name=card]").should("not.exist");
 
     cy.get("[data-name=menu-button]").click();
@@ -110,10 +125,7 @@ context("Menu", () => {
 
     cy.get("[data-name=vote-button]:visible").should("not.exist");
 
-    cy.get("[data-name=card]")
-      .find("[data-name=delete-button]:visible")
-      .click({ multiple: true });
-    cy.get("[data-name=confirm-button]:visible").click({ multiple: true });
+    deleteAllCards();
     cy.get("[data-name=card]").should("not.exist");
   });
 
@@ -165,10 +177,7 @@ context("Menu", () => {
         expect(match).to.exist;
       });
 
-    cy.get("[data-name=card]")
-      .find("[data-name=delete-button]:visible")
-      .click({ multiple: true });
-    cy.get("[data-name=confirm-button]:visible").click({ multiple: true });
+    deleteAllCards();
     cy.get("[data-name=card]").should("not.exist");
   });
 
@@ -205,10 +214,7 @@ context("Menu", () => {
         );
       });
 
-    cy.get("[data-name=card]")
-      .find("[data-name=delete-button]:visible")
-      .click({ multiple: true });
-    cy.get("[data-name=confirm-button]:visible").click({ multiple: true });
+    deleteAllCards();
     cy.get("[data-name=card]").should("not.exist");
   });
 
@@ -219,16 +225,6 @@ context("Menu", () => {
   });
 
   after(() => {
-    cy.login();
-    cy.intercept("boards").as("getBoards");
-    cy.visit("/");
-    cy.wait("@getBoards");
-    cy.get("[data-name=board-list-button]").should("have.length", 1);
-    cy.get("[data-name=board-list-button]").click();
-    cy.get("[data-name=delete-button]").each(($el) => {
-      cy.wrap($el).click();
-      cy.get("[data-name=delete-confirm-button]").click();
-    });
-    cy.get("[data-name=board-table]").should("not.exist");
+    cy.deleteAllBoards();
   });
 });

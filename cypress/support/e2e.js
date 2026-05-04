@@ -1,4 +1,4 @@
-Cypress.Commands.add("login", (name = "user") => {
+Cypress.Commands.add("login", (name = "owner") => {
   cy.session(
     name,
     () => {
@@ -12,4 +12,13 @@ Cypress.Commands.add("login", (name = "user") => {
       },
     },
   );
+});
+
+Cypress.Commands.add("deleteAllBoards", () => {
+  cy.login("owner");
+  cy.request("GET", "/boards").then((response) => {
+    response.body.forEach((board) => {
+      cy.request("DELETE", `/boards/${board.id}`);
+    });
+  });
 });
