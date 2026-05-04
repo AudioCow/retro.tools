@@ -51,6 +51,40 @@ context('Encryption', () => {
     cy.get('[data-name=card]:visible').should('contain', 'Secret Author');
   });
 
+  it('shows encrypted placeholder after entering the wrong password', () => {
+    cy.get('[data-name=password-wall-input]').type('wrong-password');
+    cy.get('[data-name=password-wall-unlock-button]').click();
+    // PasswordWall should remain (shake animation, then input cleared)
+    cy.get('[data-name=password-wall-input]').should('exist');
+    cy.get('[data-name=card]').should('not.exist');
+  });
+
+  it('CSV export contains decrypted card content', () => {
+    cy.get('[data-name=password-wall-input]').type(boardPassword);
+    cy.get('[data-name=password-wall-unlock-button]').click();
+    cy.get('[data-name=password-wall-input]').should('not.exist');
+    cy.get('[data-name=card]:visible').should('have.length', 1);
+
+    const csv = { content: null };
+    cy.window().then((win) => {
+      const original = win.URL.createObjectURL.bind(win.URL);
+      cy.stub(win.URL, 'createObjectURL').callsFake((blob) => {
+        blob.text().then((text) => {
+          csv.content = text;
+        });
+        return original(blob);
+      });
+    });
+
+    cy.get('[data-name=menu-button]').click();
+    cy.get('[data-name=download-csv-button]').click();
+
+    cy.wrap(csv)
+      .its('content')
+      .should('contain', 'Secret card content')
+      .and('contain', 'Secret Author');
+  });
+
   after(() => {
     cy.deleteAllBoards();
   });
