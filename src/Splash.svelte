@@ -112,7 +112,11 @@
     <hr class="mt-1 mb-4" />
     <div class="d-flex justify-content-center">
       <div class="top-section">
-        <h1 class="text-center mb-5 text-body" style="margin-top: 100px;">
+        <h1
+          data-name="splash-hero"
+          class="text-center mb-5 text-body"
+          style="margin-top: 100px;"
+        >
           {$_("splash.hero_text")}
         </h1>
         <div class="d-flex flex-column justify-content-center">
@@ -143,10 +147,9 @@
             <Icons.anonymous size="100%" />
           </div>
           <div class="card-body">
-            <h5 class="card-title">Anonymous</h5>
+            <h5 class="card-title">{$_("splash.features.anonymous.title")}</h5>
             <p class="card-text">
-              No personal information is stored and you're free to delete boards
-              for absolute certainty.
+              {$_("splash.features.anonymous.body_1")}
               <br />
               <br />
               <a
@@ -155,9 +158,9 @@
                 rel="noreferrer"
                 href="https://github.com/d0x2f/retro.tools"
               >
-                Our code
+                {$_("splash.features.anonymous.code_link")}
               </a>
-              is publicly available for anyone to verify.
+              {$_("splash.features.anonymous.body_2")}
               <br />
             </p>
           </div>
@@ -167,10 +170,9 @@
             <Icons.phone size="100%" />
           </div>
           <div class="card-body">
-            <h5 class="card-title">Simple, Clean & Intuitive</h5>
+            <h5 class="card-title">{$_("splash.features.simple.title")}</h5>
             <p class="card-text">
-              Our primary design goal is simplicity, we believe that tools
-              should be easy to understand and require no manual.
+              {$_("splash.features.simple.body")}
             </p>
           </div>
         </div>
@@ -179,16 +181,18 @@
             <Icons.code size="100%" />
           </div>
           <div class="card-body">
-            <h5 class="card-title">Free & Open Source</h5>
+            <h5 class="card-title">
+              {$_("splash.features.open_source.title")}
+            </h5>
             <p class="card-text">
-              Retro.tools is free to use and the source code is available on
+              {$_("splash.features.open_source.body")}
               <a
                 class="text-{$colorMode}"
                 rel="noreferrer"
                 target="_blank"
                 href="https://github.com/d0x2f/retro.tools"
               >
-                GitHub.
+                {$_("splash.features.open_source.github_link")}
               </a>
             </p>
           </div>
@@ -198,10 +202,9 @@
             <Icons.login size="100%" />
           </div>
           <div class="card-body">
-            <h5 class="card-title">No Logins!</h5>
+            <h5 class="card-title">{$_("splash.features.no_logins.title")}</h5>
             <p class="card-text">
-              To stay anonymous and convenient, we won't ask you to create an
-              account or to provide any other information, simply click and go!
+              {$_("splash.features.no_logins.body")}
               <br />
               <br />
             </p>
@@ -212,13 +215,12 @@
             <Icons.lock size="100%" />
           </div>
           <div class="card-body">
-            <h5 class="card-title">End to End Encryption</h5>
+            <h5 class="card-title">{$_("splash.features.encryption.title")}</h5>
             <p class="card-text">
-              Board encryption is optionally available using a password.
+              {$_("splash.features.encryption.body_1")}
               <br />
               <br />
-              All encryption is handled by the browser and our backend sees nothing
-              but encrypted data!
+              {$_("splash.features.encryption.body_2")}
             </p>
           </div>
         </div>
